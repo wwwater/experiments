@@ -105,26 +105,48 @@ def ai_Johnny(board, player):
 
 def utility(board, player):
     if if_won(board, player):
-        return 1.0
+        return (1.0, 1)
     elif if_draw(board):
-        return 0.5
-    max_other_utility = 0.0
+        return (0.5, 1)
+    max_other_utility = -1.0
+    best_other_steps = None
     other = toggle_player(player)
     for move in available_moves(board):
-        other_utility = utility(make_move(board, other, move), other)
-        max_other_utility = max(max_other_utility, other_utility)
-    return 1 - max_other_utility    
+        (other_utility, steps) = utility(make_move(board, other, move), other)
+        if other_utility > max_other_utility:
+            max_other_utility = other_utility
+            best_other_steps = steps
+        elif other_utility == max_other_utility:
+            if other_utility < 0.5:
+                best_other_steps = max(best_other_steps, steps)
+            elif other_utility > 0.5:
+                best_other_steps = min(best_other_steps, steps)
+    return (1 - max_other_utility, best_other_steps + 1)
 
 
 def best_move(board, player):
-    max_utility = 0
+    max_utility = -1.0
     my_best_move = None
-    for move in available_moves(board):
-        my_utility = utility(make_move(board, player, move), player)
-        #print(str(move) + str(my_utility))
+    my_best_steps = None
+    moves = available_moves(board)
+    random.shuffle(moves)
+    for move in moves:
+        (my_utility, steps) = utility(make_move(board, player, move), player)
+        #print(str(move) + str(my_utility) + " " + str(steps))
         if my_utility > max_utility:
             my_best_move = move
-            max_utility = my_utility 
+            my_best_steps = steps
+            max_utility = my_utility
+        elif my_utility == max_utility:
+            if my_utility < 0.5:
+                if steps > my_best_steps:
+                    my_best_move = move
+                    my_best_steps = steps
+            elif my_utility > 0.5:
+                if steps < my_best_steps:
+                    my_best_steps = steps
+                    my_best_move = move
+            
     return my_best_move
     
 
